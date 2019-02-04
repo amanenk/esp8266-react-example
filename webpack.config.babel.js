@@ -5,6 +5,8 @@ import autoprefixer from 'autoprefixer';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
 import OfflinePlugin from 'offline-plugin';
 import path from 'path';
+const CompressionPlugin = require('compression-webpack-plugin');
+
 const ENV = process.env.NODE_ENV || 'development';
 
 const CSS_MAPS = ENV!=='production';
@@ -133,6 +135,11 @@ module.exports = {
 			{ from: './favicon.ico', to: './' }
 		])
 	]).concat(ENV==='production' ? [
+		new CompressionPlugin({
+			filename: '[path].gz[query]',
+			algorithm: 'gzip',		
+			test: /\.js$|\.html$|\.css$/
+		}),
 		new webpack.optimize.UglifyJsPlugin({
 			output: {
 				comments: false
