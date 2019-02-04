@@ -2,7 +2,6 @@ import { h, Component } from 'preact';
 import { Router } from 'preact-router';
 
 import Header from './header';
-import Home from './home';
 import Scan from './scan';
 
 export default class App extends Component {
@@ -19,8 +18,7 @@ export default class App extends Component {
 			<div id="app">
 				<Header />
 				<Router onChange={this.handleRoute}>
-					<Home path="/" />
-					<Scan path="/scan" />
+					<Scan path="/" />
 				</Router>
 			</div>
 		);
