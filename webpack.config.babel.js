@@ -9,7 +9,7 @@ const CompressionPlugin = require('compression-webpack-plugin');
 
 const ENV = process.env.NODE_ENV || 'development';
 
-const CSS_MAPS = ENV!=='production';
+const CSS_MAPS = ENV !== 'production';
 
 module.exports = {
 	context: path.resolve(__dirname, "src"),
@@ -65,7 +65,7 @@ module.exports = {
 							options: {
 								sourceMap: CSS_MAPS,
 								plugins: () => {
-									autoprefixer({ browsers: [ 'last 2 versions' ] });
+									autoprefixer({ browsers: ['last 2 versions'] });
 								}
 							}
 						},
@@ -91,7 +91,7 @@ module.exports = {
 							options: {
 								sourceMap: CSS_MAPS,
 								plugins: () => {
-									autoprefixer({ browsers: [ 'last 2 versions' ] });
+									autoprefixer({ browsers: ['last 2 versions'] });
 								}
 							}
 						},
@@ -112,7 +112,7 @@ module.exports = {
 			},
 			{
 				test: /\.(svg|woff2?|ttf|eot|jpe?g|png|gif)(\?.*)?$/i,
-				use: ENV==='production' ? 'file-loader' : 'url-loader'
+				use: ENV === 'production' ? 'file-loader' : 'url-loader'
 			}
 		]
 	},
@@ -134,10 +134,10 @@ module.exports = {
 			{ from: './manifest.json', to: './' },
 			{ from: './favicon.ico', to: './' }
 		])
-	]).concat(ENV==='production' ? [
+	]).concat(ENV === 'production' ? [
 		new CompressionPlugin({
 			filename: '[path].gz[query]',
-			algorithm: 'gzip',		
+			algorithm: 'gzip',
 			test: /\.js$|\.html$|\.css$/
 		}),
 		new webpack.optimize.UglifyJsPlugin({
@@ -199,7 +199,7 @@ module.exports = {
 		setImmediate: false
 	},
 
-	devtool: ENV==='production' ? 'source-map' : 'cheap-module-eval-source-map',
+	devtool: ENV === 'production' ? 'source-map' : 'cheap-module-eval-source-map',
 
 	devServer: {
 		port: process.env.PORT || 8080,
@@ -209,12 +209,36 @@ module.exports = {
 		historyApiFallback: true,
 		open: true,
 		openPage: '',
-		proxy: {
-			// OPTIONAL: proxy configuration:
-			// '/optional-prefix/**': { // path pattern to rewrite
-			//   target: 'http://target-host.com',
-			//   pathRewrite: path => path.replace(/^\/[^\/]+\//, '')   // strip first path segment
-			// }
+		before: function (app, server) {
+			let mac = 'test-mac-address';
+			app.get("/api/wifi/mac", function (req, res) {
+				res.json({ sta_mac: mac });
+			});
+			app.get(`/${mac}/api/wifi/scan`, function (req, res) {
+				res.json([
+					{ "ssid": "Home111", "rssi": -41, "authmode": "wpa2_psk", "cached": false, "connected": false },
+					{ "ssid": "fsdaoif", "rssi": -20, "authmode": "wpa2_psk", "cached": false, "connected": false },
+					{ "ssid": "sdofisu", "rssi": -72, "authmode": "wpa2_psk", "cached": false, "connected": false },
+					{ "ssid": "fsd 8 fdf", "rssi": -94, "authmode": "wpa2_psk", "cached": false, "connected": false },
+				]);
+			});
+			app.get(`/${mac}/api/wifi/status`, function (req, res) {
+				res.json({
+					"sdk": "2.2.1(cfd48f3)",
+					"freq": 80,
+					"chipID": 4834743,
+					"boot": "0.0",
+					"version": "0.0",
+					"free_heap": 31976,
+					"commit": "unknown",
+					"build": "unset",
+					"ap_ssid": "Home111",
+					"network_status": true,
+					"ip": "192.168.3.4",
+					"wifi_status": true,
+					"fs_version": "0.0"
+				});
+			});
 		}
 	}
 };
