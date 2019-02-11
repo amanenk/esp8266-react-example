@@ -8,6 +8,8 @@ let files = dirCont.filter(function (elm) { return elm.match(/.*\.(gz)/ig); });
 
 const hFileName = path.join(__dirname, "web_content.h");
 
+var totalSize = 0;
+
 fs.unlink(hFileName, function (err) {
     if (err) return console.log(err);
     console.log('file deleted successfully');
@@ -19,6 +21,7 @@ files.forEach((filename) => {
     let filepath = path.join(foldername, filename);
     const stats = fs.statSync(filepath)
     const fileSizeInBytes = stats.size
+    totalSize += fileSizeInBytes;
     var c_string = `const char ${filename.replace(/\./g, "_").toUpperCase()}[] PROGMEM = {`;
 
     console.log(`file size: ${fileSizeInBytes}`);
@@ -40,6 +43,8 @@ files.forEach((filename) => {
             console.log(c_string);
             // fs.writeFileSync(hFileName)
             fs.appendFileSync(hFileName, c_string);
+
+            console.log(`total size is ${totalSize} bytes`)
         });
     });
 })
