@@ -24,12 +24,14 @@ function httpPutAsync(theUrl, data, callback) {
 }
 
 export default class Scan extends Component {
-	state = {
-		mac: "",
-		scanResult: [],
-		showModal: false,
-		modalData: {}
-	};
+	constructor() {
+		super();
+
+		this.state.mac = "";
+		this.state.scanResult = [];
+		this.state.showModal = false;
+		this.state.modalData = {};
+	}
 
 	getMac = () => {
 		let self = this;
@@ -43,7 +45,11 @@ export default class Scan extends Component {
 					self.setState({ mac: data.sta_mac, noMac: false });
 					console.log("state updated");
 					self.scanWiFi();
-					setInterval(self.getStatus, 5000);
+					// Active
+					window.onfocus = self.startStatusTimer;
+					// Inactive
+					window.onblur = self.stopStatusTimer;
+					self.startStatusTimer();
 				} else {
 					throw new Error();
 				}
@@ -55,30 +61,51 @@ export default class Scan extends Component {
 		})
 	}
 
+	startStatusTimer = () => {
+		console.log("start timer")
+		if (this.timer != undefined) {
+			this.stopStatusTimer();
+		}
+		if (!this.state.noMac)
+			this.timer = setInterval(this.getStatus, 6000);
+		else
+			console.log("no mac to do getstatus")
+	}
+
+
+	stopStatusTimer = () => {
+		console.log("stop timer")
+		clearInterval(this.timer);
+		delete this.timer;
+	}
+
 	getStatus = () => {
+		console.log("get status");
 		let self = this;
 		httpGetAsync(`/${this.state.mac}/api/wifi/status`, function (result) {
-			console.log(`result ${result}`);
+			console.log(`get status result ${result}`);
 			try {
 				let data = JSON.parse(result);
 				if (data)
 					self.setState({ deviceStatus: data });
 			} catch (error) {
-				console.log("failed to status");
+				console.log("failed to get status");
 			}
 		})
 	}
 
 	scanWiFi = () => {
 		let self = this;
+		self.setState({ scanning: true });
 		httpGetAsync(`/${this.state.mac}/api/wifi/scan`, function (result) {
 			console.log(`result ${result}`);
 			try {
 				let data = JSON.parse(result);
 				if (data)
-					self.setState({ scanResult: data });
+					self.setState({ scanResult: data, scanning: false });
 			} catch (error) {
 				console.log("failed to parse scan");
+				self.setState({ scanning: false });
 			}
 		})
 	}
@@ -91,7 +118,7 @@ export default class Scan extends Component {
 
 	// gets called just before navigating away from the route
 	componentWillUnmount() {
-		clearInterval(this.timer);
+		this.stopStatusTimer();
 	}
 
 	handleClick(ap) {
@@ -109,7 +136,7 @@ export default class Scan extends Component {
 		// console.log(this.state.password);
 		console.log("try to connect");
 
-		this.setState({connecting: true, deviceStatus: null});
+		this.setState({ connecting: true, deviceStatus: null });
 
 		httpPutAsync(`/${this.state.mac}/api/wifi/connect`, {
 			ssid: ssid,
@@ -119,20 +146,31 @@ export default class Scan extends Component {
 		})
 	}
 
-	render({ }, { noMac, showModal, modalData, scanResult, deviceStatus, connecting }) {
-		console.log("no mac is:", noMac);
-
-		if (deviceStatus != undefined && deviceStatus.wifi_status && connecting) {
+	render({ }, { noMac, showModal, modalData, scanResult, deviceStatus, connecting, scanning }) {
+		if (deviceStatus != undefined && deviceStatus.network_status && connecting) {
 			this.setState({ showModal: false, connecting: false });
+		}
+
+		var status = null;
+		if (noMac) {
+			console.log("mac is not loaded");
+			status = <h1> No Mac Loaded</h1>;
+		} else if (scanResult.length == 0) {
+			console.log("there is no acces points found");
+			if (scanning) {
+				console.log("scanninsg now");
+				status = <p>Scaning...</p>;
+			} else {
+				status = <button class={buttonStyle.btn} onClick={() => { this.scanWiFi() }}>Scan</button>
+			}
+		} else if (deviceStatus != undefined) {
+			console.log("need to show status");
+			status = <p>Status: {deviceStatus.network_status ? `Connected. AP: ${deviceStatus.ap_ssid} IP: ${deviceStatus.ip}` : "Not Connected"}</p>;
 		}
 
 		return (
 			<div class={style.scanResults}>
-				{noMac ? <div><h1> No Mac Loaded</h1></div> : null}
-
-				{deviceStatus != undefined ? <div>
-					Status: {deviceStatus.wifi_status ? `Conndected. AP: ${deviceStatus.ap_ssid} IP: ${deviceStatus.ip}` : "Not Connected"}
-				</div> : null}
+				{status != "" ? <div> {status} </div> : null}
 
 				<ul>
 					{scanResult.map(ap => (
@@ -141,7 +179,6 @@ export default class Scan extends Component {
 						</button>
 					))}
 				</ul>
-
 
 				{showModal ? <ModalDialog show={showModal} onCloseRequest={() => this.handleToggleModal()}>
 					<p>please enter the password for {modalData.ssid}</p>

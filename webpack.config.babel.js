@@ -5,6 +5,7 @@ import autoprefixer from 'autoprefixer';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
 import OfflinePlugin from 'offline-plugin';
 import path from 'path';
+
 const CompressionPlugin = require('compression-webpack-plugin');
 
 const ENV = process.env.NODE_ENV || 'development';
@@ -215,12 +216,12 @@ module.exports = {
 				res.json({ sta_mac: mac });
 			});
 			app.get(`/${mac}/api/wifi/scan`, function (req, res) {
-				res.json([
-					{ "ssid": "Home111", "rssi": -41, "authmode": "wpa2_psk", "cached": false, "connected": false },
-					{ "ssid": "fsdaoif", "rssi": -20, "authmode": "wpa2_psk", "cached": false, "connected": false },
-					{ "ssid": "sdofisu", "rssi": -72, "authmode": "wpa2_psk", "cached": false, "connected": false },
-					{ "ssid": "fsd 8 fdf", "rssi": -94, "authmode": "wpa2_psk", "cached": false, "connected": false },
-				]);
+				setTimeout(function () {
+					var fs = require('fs');
+					var obj = JSON.parse(fs.readFileSync('./test_api_responses/scanResult.json', 'utf8'));
+					res.json(obj);
+				}, 3000);
+
 			});
 			app.get(`/${mac}/api/wifi/status`, function (req, res) {
 				res.json({
@@ -238,6 +239,11 @@ module.exports = {
 					"wifi_status": true,
 					"fs_version": "0.0"
 				});
+			});
+			app.get(`/${mac}/api/wifi/connect`, function (req, res) {
+				setTimeout(function () {
+					res.json({obj: true});
+				}, 3000);
 			});
 		}
 	}

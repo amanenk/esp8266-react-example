@@ -1,0 +1,30 @@
+[
+    {
+        "ssid": "Home111",
+        "rssi": -41,
+        "authmode": "wpa2_psk",
+        "cached": false,
+        "connected": false
+    },
+    {
+        "ssid": "fsdaoif",
+        "rssi": -20,
+        "authmode": "wpa2_psk",
+        "cached": false,
+        "connected": false
+    },
+    {
+        "ssid": "sdofisu",
+        "rssi": -72,
+        "authmode": "wpa2_psk",
+        "cached": false,
+        "connected": false
+    },
+    {
+        "ssid": "fsd 8 fdf",
+        "rssi": -94,
+        "authmode": "wpa2_psk",
+        "cached": false,
+        "connected": false
+    }
+]
