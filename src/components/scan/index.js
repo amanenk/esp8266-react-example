@@ -145,7 +145,7 @@ export default class Scan extends Component {
 			this.handleToggleModal();
 		} else {
 			this.state.password = "";
-			this.doConnect();
+			this.doConnect(ap.ssid);
 		}
 
 	}
@@ -157,7 +157,10 @@ export default class Scan extends Component {
 
 	doConnect(ssid) {
 		console.log(this.state.password);
-		console.log("try to connect");
+		console.log("try to connect", {
+			ssid: ssid,
+			password: this.state.password
+		});
 
 		this.setState({ connecting: true, deviceStatus: null });
 
