@@ -1,6 +1,22 @@
 import { h, Component } from 'preact';
-import style from './style.less';
+
+// import { Button } from 'preact-material-components';
+// import 'preact-material-components/Button/style.css';
+// import {
+// 	MdSignalWifi4BarLock,
+// 	MdSignalWifi4Bar,
+// 	MdSignalWifi3BarLock,
+// 	MdSignalWifi3Bar,
+// 	MdSignalWifi2BarLock,
+// 	MdSignalWifi2Bar,
+// 	MdSignalWifi1BarLock,
+// 	MdSignalWifi1Bar,
+// 	MdSignalWifi0Bar
+// } from 'react-icons/md';
+
+
 import buttonStyle from './button.less';
+import style from './style.less';
 import ModalDialog from '../modal';
 
 function httpGetAsync(theUrl, callback) {
@@ -72,7 +88,6 @@ export default class Scan extends Component {
 			console.log("no mac to do getstatus")
 	}
 
-
 	stopStatusTimer = () => {
 		console.log("stop timer")
 		clearInterval(this.timer);
@@ -116,6 +131,8 @@ export default class Scan extends Component {
 		this.getMac();
 	}
 
+
+
 	// gets called just before navigating away from the route
 	componentWillUnmount() {
 		this.stopStatusTimer();
@@ -123,8 +140,14 @@ export default class Scan extends Component {
 
 	handleClick(ap) {
 		console.log("ssid click");
-		this.setState({ modalData: ap });
-		this.handleToggleModal();
+		if (ap.authmode == "wpa2_psk") {
+			this.setState({ modalData: ap });
+			this.handleToggleModal();
+		} else {
+			this.state.password = "";
+			this.doConnect();
+		}
+
 	}
 
 	handleToggleModal() {
@@ -133,7 +156,7 @@ export default class Scan extends Component {
 	}
 
 	doConnect(ssid) {
-		// console.log(this.state.password);
+		console.log(this.state.password);
 		console.log("try to connect");
 
 		this.setState({ connecting: true, deviceStatus: null });
@@ -151,6 +174,8 @@ export default class Scan extends Component {
 			this.setState({ showModal: false, connecting: false });
 		}
 
+
+
 		var status = null;
 		if (noMac) {
 			console.log("mac is not loaded");
@@ -161,7 +186,12 @@ export default class Scan extends Component {
 				console.log("scanninsg now");
 				status = <p>Scaning...</p>;
 			} else {
-				status = <button class={buttonStyle.btn} onClick={() => { this.scanWiFi() }}>Scan</button>
+				status = <button
+					class={buttonStyle.btn}
+					style={{ alignSelf: "center", marginTop: 2, width: "20%" }}
+					onClick={() => { this.scanWiFi() }}>
+					Scan
+				</button>
 			}
 		} else if (deviceStatus != undefined) {
 			console.log("need to show status");
@@ -170,23 +200,55 @@ export default class Scan extends Component {
 
 		return (
 			<div class={style.scanResults}>
+
 				{status != "" ? <div> {status} </div> : null}
 
 				<ul>
-					{scanResult.map(ap => (
-						<button class={buttonStyle.btn} onClick={() => { this.handleClick(ap) }}>
-							{ap.ssid}
-						</button>
-					))}
+					{scanResult.map(ap => {
+						// let signal_icon = <MdSignalWifi0Bar />;
+						let psk = ap.authmode == "wpa2_psk";
+
+						//maybe in future will be used signal icons
+						// if (ap.rssi > -40) {
+						// 	signal_icon = psk ? <MdSignalWifi4BarLock /> : <MdSignalWifi4Bar />;
+						// } else if (ap.rssi > -55) {
+						// 	signal_icon = psk ? <MdSignalWifi3BarLock /> : <MdSignalWifi3Bar />;
+						// } else if (ap.rssi > -65) {
+						// 	signal_icon = psk ? <MdSignalWifi2BarLock /> : <MdSignalWifi2Bar />;
+						// } else if (ap.rssi > -80) {
+						// 	signal_icon = psk ? <MdSignalWifi1BarLock /> : <MdSignalWifi1Bar />;
+						// }
+
+						//lock icon svg
+						let network_icon = psk ? <svg style={{ height: "25px", position: "absolute", right: "0.2em", top: "0.2em" }} viewBox="0 0 24 24">
+							<path d="m3,9v11h14V9M4,9V6c0-3.3 2.7-6 6-6c3.3,0 6,2.7 6,6v3H14V6c0-2.2-1.8-4-4-4-2.2,0-4,1.8-4,4v3" />
+						</svg> : null
+
+						return (
+							<button
+								class={buttonStyle.btn}
+								onClick={() => { this.handleClick(ap) }}>
+								{ap.ssid}
+								{network_icon}
+							</button>
+						)
+
+					})}
 				</ul>
 
-				{showModal ? <ModalDialog show={showModal} onCloseRequest={() => this.handleToggleModal()}>
-					<p>please enter the password for {modalData.ssid}</p>
-					<input onChange={(event) => this.state.password = event.target.value} id="userPassword" type="password"></input>
-					<button onClick={() => this.doConnect(modalData.ssid)} class={buttonStyle.btn}>
-						Connect
+				{
+					showModal ? <ModalDialog show={showModal} onCloseRequest={() => this.handleToggleModal()}>
+						<p>please enter the password for {modalData.ssid}</p>
+						<input onChange={(event) => this.state.password = event.target.value} id="userPassword" type="password"></input>
+						<button
+							class={buttonStyle.btn}
+							onClick={() => this.doConnect(modalData.ssid)}
+							style={{ width: "35%" }}
+						>
+							Connect
 					</button>
-				</ModalDialog> : null}
+					</ModalDialog> : null
+				}
 
 			</div >
 		);

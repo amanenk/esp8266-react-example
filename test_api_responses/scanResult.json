@@ -16,7 +16,7 @@
     {
         "ssid": "sdofisu",
         "rssi": -72,
-        "authmode": "wpa2_psk",
+        "authmode": "nopass",
         "cached": false,
         "connected": false
     },
