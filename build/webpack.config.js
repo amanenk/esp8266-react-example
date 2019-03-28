@@ -14,8 +14,12 @@ const ProgressBarPlugin = require('progress-bar-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const production = process.env.NODE_ENV === 'production';
 const extractSass = new ExtractTextPlugin({
-    filename: '[name].[md5:contenthash:hex:20].css'
+  filename: '[name].[md5:contenthash:hex:20].css'
 });
+
+const ENV = process.env.NODE_ENV || 'development';
+
+const CSS_MAPS = ENV !== 'production';
 
 const sw = path.join(__dirname, '../src/sw.js');
 
@@ -76,8 +80,8 @@ if (production) {
         to: path.resolve(__dirname, '../dist/assets/')
       },
       {
-       from: path.resolve(__dirname, '../src/manifest.json'),
-       to: path.resolve(__dirname, '../dist/manifest.json')
+        from: path.resolve(__dirname, '../src/manifest.json'),
+        to: path.resolve(__dirname, '../dist/manifest.json')
       }
     ]),
     new InjectManifest({
@@ -112,13 +116,13 @@ const common = {
     publicPath: '/'
   },
   resolve: {
-    extensions: ['.js', '.jsx', '.css', '.scss'],
+    extensions: ['.js', '.jsx', '.less'],
     alias: {
       // in order to use css-transition-group
       // you have to aliase react and react-dom
       react: 'preact-compat',
-			'react-dom': 'preact-compat',
-			'react-addons-css-transition-group': 'preact-css-transition-group',
+      'react-dom': 'preact-compat',
+      'react-addons-css-transition-group': 'preact-css-transition-group',
       components: config.componentsPath,
       routes: config.routesPath,
       src: config.staticPath
@@ -126,18 +130,37 @@ const common = {
   },
   module: {
     rules: [{
-      test: /\.(css|scss)$/,
+      test: /\.(less|css)$/,
+      include: [path.resolve(__dirname, 'src/components')],
       use: ExtractTextPlugin.extract({
-        // style-loader in developpment
         fallback: 'style-loader',
-        use: ['css-loader', 'sass-loader']
+        use: [
+          {
+            loader: 'css-loader',
+            options: { modules: true, sourceMap: CSS_MAPS, importLoaders: 1, minimize: true }
+          },
+          {
+            loader: 'less-loader',
+            options: { sourceMap: CSS_MAPS }
+          },
+          {
+            loader: `postcss-loader`,
+            options: {
+              sourceMap: CSS_MAPS,
+              plugins: () => {
+                autoprefixer({ browsers: ['last 2 versions'] });
+              }
+            }
+          }
+        ]
       })
-    },{
+    }, {
       test: /\.(js|jsx)$/,
       exclude: /node_modules/,
       include: path.resolve(__dirname, "../src"),
-      loader: 'babel-loader'
-    },{
+      loader: 'babel-loader',
+      options: { babelrcRoots: ['.', '../'] }, // <-- this line fixed it!
+    }, {
       test: /\.(png|svg)$/,
       loader: production ? 'file-loader' : 'url-loader',
       query: {

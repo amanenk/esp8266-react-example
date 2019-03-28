@@ -11,6 +11,7 @@
   "plugins": [
     ["@babel/plugin-transform-react-jsx", {"pragma": "h"}],
     ["@babel/plugin-proposal-object-rest-spread"],
+    ["@babel/plugin-proposal-class-properties"],
     ["transform-react-remove-prop-types"],
     ["module:fast-async", {
       "compiler": {
