@@ -30,7 +30,7 @@ rm -rf .git && git init && npm init
 **3. Install the dependencies:**
 
 ```sh
-npm install
+yarn install
 ```
 
 > You're done installing! Now let's get started developing.
