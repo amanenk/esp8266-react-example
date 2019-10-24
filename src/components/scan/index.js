@@ -187,7 +187,7 @@ export default class Scan extends Component {
 			console.log("there is no acces points found");
 			if (scanning) {
 				console.log("scanninsg now");
-				status = <p>Scaning...</p>;
+				status = <p>Scanning...</p>;
 			} else {
 				status = <button
 					class={buttonStyle.btn}

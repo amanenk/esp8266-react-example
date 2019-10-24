@@ -3,6 +3,7 @@ import { Router } from 'preact-router';
 
 import Header from './header';
 import Scan from './scan';
+import Update from './update';
 
 export default class App extends Component {
 	/** Gets fired when the route changes.
@@ -19,6 +20,7 @@ export default class App extends Component {
 				<Header />
 				<Router onChange={this.handleRoute}>
 					<Scan path="/" />
+					<Update path="/update" />
 				</Router>
 			</div>
 		);
